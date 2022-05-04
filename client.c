@@ -6,11 +6,39 @@
 /*   By: gborne <gborne@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/02/03 02:01:58 by gborne            #+#    #+#             */
-/*   Updated: 2022/02/04 07:55:07 by gborne           ###   ########.fr       */
+/*   Updated: 2022/04/28 18:39:27 by gborne           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "minitalk.h"
+
+static int	ft_isdigit(int c)
+{
+	if (c >= '0' && c <= '9')
+		return (1);
+	return (0);
+}
+
+static int	ft_atoi(const char *str)
+{
+	int	sign;
+	int	result;
+
+	sign = 1;
+	result = 0;
+	while ((*str >= 9 && *str <= 13) || *str == 32)
+		str++;
+	if (*str == 43 || *str == 45 || ft_isdigit(*str))
+	{
+		if (*str == 45)
+			sign = -1;
+		if (ft_isdigit(*str))
+			result = result * 10 + (*str - 48);
+		while (ft_isdigit(*++str))
+			result = result * 10 + (*str - 48);
+	}
+	return (result * sign);
+}
 
 void	send_char(char chr, int server_pid)
 {
@@ -49,9 +77,9 @@ int	main(int argc, char **argv)
 	{
 		server_pid = ft_atoi(argv[1]);
 		if (!server_pid)
-			return (write(1, "ERROR: invalid pid -> main().", 33));
+			return (write(1, "Error\nInvalid PID", 18));
 		send_str(argv[2], server_pid);
 		return (0);
 	}
-	return (write(1, "Usage: ./client [server pid] ", 30));
+	return (write(1, "Usage: ./client [server PID] \"string\"", 30));
 }
