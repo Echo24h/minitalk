@@ -6,7 +6,7 @@
 /*   By: gborne <gborne@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/02/03 02:01:27 by gborne            #+#    #+#             */
-/*   Updated: 2022/04/28 18:38:20 by gborne           ###   ########.fr       */
+/*   Updated: 2022/05/11 17:24:37 by gborne           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,7 +19,7 @@ static void	ft_putchar(char c)
 
 static void	ft_putnbr(int n)
 {
-	unsigned int numb;
+	unsigned int	numb;
 
 	if (n < 0)
 	{
@@ -37,12 +37,16 @@ static void	ft_putnbr(int n)
 		ft_putchar(numb + 48);
 }
 
-void	receptor(int sig)
+void	receptor(int sig, siginfo_t *info, void *context)
 {
 	static char	c = '\0';
 	static int	bit_weight = 1;
 	static int	signal_len = sizeof(char) * 8;
+	static int	clt_pid;
 
+	(void)context;
+	if (info->si_pid)
+		clt_pid = info->si_pid;
 	if (sig == SIGUSR1)
 		c += bit_weight;
 	signal_len--;
@@ -54,21 +58,25 @@ void	receptor(int sig)
 		signal_len = sizeof(char) * 8;
 		c = '\0';
 	}
+	usleep(20);
+	kill(clt_pid, SIGUSR1);
 }
 
-int	main()
+int	main(void)
 {
-	int pid;
+	int					pid;
+	struct sigaction	sa;
 
+	sa.sa_flags = SA_SIGINFO;
+	sa.sa_sigaction = receptor;
 	pid = getpid();
 	write(1, "Server PID: ", 13);
 	ft_putnbr(pid);
 	write(1, "\n", 2);
 	while (1)
 	{
-		signal(SIGUSR1, receptor);
-		signal(SIGUSR2, receptor);
-		pause();
+		sigaction(SIGUSR1, &sa, NULL);
+		sigaction(SIGUSR2, &sa, NULL);
 	}
 	return (0);
 }

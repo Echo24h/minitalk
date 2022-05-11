@@ -6,7 +6,7 @@
 /*   By: gborne <gborne@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/02/03 02:01:58 by gborne            #+#    #+#             */
-/*   Updated: 2022/04/28 18:39:27 by gborne           ###   ########.fr       */
+/*   Updated: 2022/05/11 17:23:53 by gborne           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -54,32 +54,35 @@ void	send_char(char chr, int server_pid)
 		else if (chr % 2 == 0)
 			kill(server_pid, SIGUSR2);
 		chr /= 2;
-		usleep(1000);
+		pause();
 		i++;
 	}
 }
 
-void	send_str(char *str, int server_pid)
+void	empty(int sig)
 {
-	int	i;
-
-	i = -1;
-	while (str[++i])
-		send_char(str[i], server_pid);
-	send_char(0, server_pid);
+	(void)sig;
 }
 
 int	main(int argc, char **argv)
 {
-	int	server_pid;
+	int					server_pid;
+	struct sigaction	sa;
+	int					i;
 
+	sa.sa_handler = empty;
+	sigaction(SIGUSR1, &sa, NULL);
+	sigaction(SIGUSR2, &sa, NULL);
+	i = -1;
 	if (argc == 3)
 	{
 		server_pid = ft_atoi(argv[1]);
 		if (!server_pid)
 			return (write(1, "Error\nInvalid PID", 18));
-		send_str(argv[2], server_pid);
+		while (argv[2][++i])
+			send_char(argv[2][i], server_pid);
+		send_char(0, server_pid);
 		return (0);
 	}
-	return (write(1, "Usage: ./client [server PID] \"string\"", 30));
+	return (write(1, "Usage: ./client [server PID] \"string\"", 38));
 }
